@@ -23,7 +23,7 @@ RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@latest \
 # USER golang
 # COPY --chown=golang:golang . .
 
-EXPOSE 8001
+EXPOSE 50051
 
 # Run the executable
 CMD ["air", "-d", "-c", ".air.toml"]

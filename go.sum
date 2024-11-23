@@ -1,5 +1,8 @@
-github.com/chyngyz-sydykov/go-web v0.0.0-20241119071845-e2b19388b39d h1:XauzCcV/DKqNEu7skXwb4vEgjTWtvyfSpJ1Rhl5GYbk=
-github.com/chyngyz-sydykov/go-web v0.0.0-20241119071845-e2b19388b39d/go.mod h1:0WjMKmrhXqsWqX96+uLpcQP6D76886Pc5dJZkV15S1A=
+github.com/chyngyz-sydykov/book-rating-protos v0.0.0-20241114124216-b9e7db2163a9 h1:36uZZ/dNl4x80Ljk12X3lC6VLyPajkVqHqJKDMk5k/M=
+github.com/chyngyz-sydykov/book-rating-protos v0.0.0-20241114124216-b9e7db2163a9/go.mod h1:IDkTy8wKcRpJ5xSee+m+cpszmHLYM9/wIW/vK7Sfeug=
+github.com/chyngyz-sydykov/go-web v0.0.0-20241123081607-26ebabe3d1c5 h1:a9+auPvlm/RjHR1jfzgPyBezQG/YMx71QqmgvfK2LPI=
+github.com/chyngyz-sydykov/go-web v0.0.0-20241123081607-26ebabe3d1c5/go.mod h1:FSG8JfPpOaPd8Pzct7cvUYpRAHnGDrw57YTqxCHCH6A=
+github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -7,6 +10,8 @@ github.com/golang/protobuf v1.5.4 h1:i7eJL8qZTpSEXOPTxNKhASYpMn+8e5Q6AdndVa1dWek
 github.com/golang/protobuf v1.5.4/go.mod h1:lnTiLA8Wa4RWRcIUkrtSVa5nRhsEGBg48fD6rSs7xps=
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
 github.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=
 github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 h1:iCEnooe7UlwOQYpKFhBabPMi4aNAfoODPEFNiAnClxo=

@@ -19,6 +19,10 @@ the protobuf files are stored in different repo https://github.com/chyngyz-sydyk
 
 generate grpc files `docker exec -it go_rest_api bash -c "./generate_protoc.sh"`
 
+check if the service is registered `grpcurl -plaintext localhost:50051 list`. you should see the following in the console `rating.RatingService` 
+Call a Specific Method
+`grpcurl -plaintext -d '{"book_id": 123}' localhost:50051 rating.RatingService.GetRatings`
+
 
 #Handy commands
 
