@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/chyngyz-sydykov/go-rating/infrastructure/db/models"
 	"github.com/chyngyz-sydykov/go-rating/internal/rating"
 	pb "github.com/chyngyz-sydykov/go-rating/proto/rating"
-	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -25,18 +25,29 @@ func NewRatingHandler(service rating.RatingServiceInterface, commonHandler Commo
 	}
 }
 func (handler *RatingHandler) SaveRating(ctx context.Context, req *pb.SaveRatingRequest) (*pb.SaveRatingResponse, error) {
-
 	log.Printf("Received SaveRating request")
-	rating := &pb.Rating{
-		RatingId: uuid.New().String(),
-		BookId:   req.BookId,
-		Rating:   req.Rating,
-		Comment:  "SaveRating!",
+	rating := &models.Rating{
+		BookId:  int64(req.BookId),
+		Rating:  int(req.Rating),
+		Comment: req.Comment,
 	}
 
-	return &pb.SaveRatingResponse{Rating: rating}, nil
+	err := handler.service.Create(rating)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "rating must be between 1 and 5")
+	}
+
+	ratingResponse := &pb.Rating{
+		RatingId: rating.ID.String(),
+		BookId:   int32(rating.BookId),
+		Rating:   int32(rating.Rating),
+		Comment:  rating.Comment,
+	}
+
+	return &pb.SaveRatingResponse{Rating: ratingResponse}, nil
 }
 func (handler *RatingHandler) GetRatings(ctx context.Context, req *pb.GetRatingsRequest) (*pb.GetRatingsResponse, error) {
+	log.Printf("Received GetRatings request")
 	bookId := req.BookId
 	ratings, err := handler.service.GetByBookID(int(bookId))
 	if err != nil {
@@ -46,6 +57,11 @@ func (handler *RatingHandler) GetRatings(ctx context.Context, req *pb.GetRatings
 	fmt.Println(ratings)
 
 	// Convert []pb.Rating to []*pb.Rating
+	ratingList := handler.mapGormToGrpcObject(ratings)
+	return &pb.GetRatingsResponse{Ratings: ratingList}, nil
+}
+
+func (*RatingHandler) mapGormToGrpcObject(ratings []models.Rating) []*pb.Rating {
 	ratingsPtr := make([]*pb.Rating, len(ratings))
 	for i := range ratings {
 		ratingsPtr[i] = &pb.Rating{
@@ -55,5 +71,5 @@ func (handler *RatingHandler) GetRatings(ctx context.Context, req *pb.GetRatings
 			Comment:  ratings[i].Comment,
 		}
 	}
-	return &pb.GetRatingsResponse{Ratings: ratingsPtr}, nil
+	return ratingsPtr
 }

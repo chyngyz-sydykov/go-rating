@@ -8,7 +8,7 @@ import (
 type RatingServiceInterface interface {
 	GetByID(id int) (models.Rating, error)
 	GetByBookID(bookId int) ([]models.Rating, error)
-	Create(book *models.Rating) error
+	Create(rating *models.Rating) error
 }
 
 type RatingService struct {
@@ -34,6 +34,6 @@ func (service *RatingService) GetByBookID(bookId int) ([]models.Rating, error) {
 	}
 	return ratings, err
 }
-func (service *RatingService) Create(book *models.Rating) error {
-	return nil
+func (service *RatingService) Create(rating *models.Rating) error {
+	return service.repository.Create(rating)
 }

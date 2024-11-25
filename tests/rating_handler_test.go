@@ -18,7 +18,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func (suite *IntegrationSuite) TesssstSaveRatingMethod_ShouldReturnSuccessResponseWithNewRating() {
+func (suite *IntegrationSuite) TestSaveRatingMethod_ShouldReturnSuccessResponseWithNewRating() {
 	// Create an in-memory gRPC server
 	listener, server := createInMemoryGrpcServer(suite)
 	defer server.Stop()
@@ -34,9 +34,9 @@ func (suite *IntegrationSuite) TesssstSaveRatingMethod_ShouldReturnSuccessRespon
 
 	// Act
 	req := &pb.SaveRatingRequest{
-		BookId:  111,
+		BookId:  1,
 		Rating:  5,
-		Comment: "SaveRating!",
+		Comment: "test comment 5",
 	}
 	res, err := client.SaveRating(context.Background(), req)
 
@@ -45,8 +45,13 @@ func (suite *IntegrationSuite) TesssstSaveRatingMethod_ShouldReturnSuccessRespon
 	assert.NotNil(suite.T(), res)
 	assert.Equal(suite.T(), req.BookId, res.Rating.BookId)
 	assert.Equal(suite.T(), req.Rating, res.Rating.Rating)
-	assert.Equal(suite.T(), req.Comment, "SaveRating!")
+	assert.Equal(suite.T(), req.Comment, "test comment 5")
 	assert.NotEmpty(suite.T(), res.Rating.RatingId)
+
+	err = suite.db.Where("book_id = ? and rating = ? and comment = ?", 1, 5, "test comment 5").First(&models.Rating{}).Error
+	suite.Suite.Assert().Nil(err)
+
+	suite.db.Unscoped().Where("1 = 1").Delete(&models.Rating{})
 }
 
 func (suite *IntegrationSuite) TestGetRatingsMethod_ShouldReturnSuccessResponseWithListOfRatings() {
