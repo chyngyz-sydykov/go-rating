@@ -21,24 +21,26 @@ func NewRatingHandler(service rating.RatingServiceInterface, commonHandler Commo
 		commonHandler: commonHandler,
 	}
 }
-func (handler *RatingHandler) SaveRating(context.Context, *pb.SaveRatingRequest) (*pb.SaveRatingResponse, error) {
+func (handler *RatingHandler) SaveRating(ctx context.Context, req *pb.SaveRatingRequest) (*pb.SaveRatingResponse, error) {
+
 	log.Printf("Received SaveRating request")
 	rating := &pb.Rating{
 		RatingId: uuid.New().String(),
-		BookId:   101,
-		Rating:   5,
+		BookId:   req.BookId,
+		Rating:   req.Rating,
 		Comment:  "SaveRating!",
 	}
 
 	return &pb.SaveRatingResponse{Rating: rating}, nil
 }
 func (handler *RatingHandler) GetRatings(ctx context.Context, req *pb.GetRatingsRequest) (*pb.GetRatingsResponse, error) {
-	log.Printf("Received GetRatings request for book_id: %d", req.BookId)
+	bookId := req.BookId
+	//_ := handler.service.GetByBookID(int(bookId))
 
 	ratings := []pb.Rating{
 		{
 			RatingId: uuid.New().String(),
-			BookId:   101,
+			BookId:   bookId,
 			Rating:   5,
 			Comment:  "GetRatings!",
 		},
