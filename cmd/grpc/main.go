@@ -1,12 +1,11 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net"
 
-	pb "github.com/chyngyz-sydykov/go-web/proto/rating"
-	"github.com/google/uuid"
+	"github.com/chyngyz-sydykov/go-rating/application"
+	pb "github.com/chyngyz-sydykov/go-rating/proto/rating"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -15,10 +14,9 @@ func main() {
 	grpcServer := grpc.NewServer()
 	reflection.Register(grpcServer)
 
-	//ratingHandler := handlers.NewRatingHandler()
+	app := application.InitializeApplication()
 
-	//services.RegisterRatingServiceServer(server, ratingHandler)
-	pb.RegisterRatingServiceServer(grpcServer, &RatingServiceServer{})
+	pb.RegisterRatingServiceServer(grpcServer, &app.RatingHandler)
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {
@@ -29,28 +27,4 @@ func main() {
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatalf("Failed to serve gRPC server: %v", err)
 	}
-}
-
-type RatingServiceServer struct {
-	pb.RatingServiceServer
-}
-
-func (s *RatingServiceServer) GetRatings(ctx context.Context, req *pb.GetRatingsRequest) (*pb.GetRatingsResponse, error) {
-	log.Printf("Received GetRatings request for book_id: %d", req.BookId)
-
-	ratings := []pb.Rating{
-		{
-			RatingId: uuid.New().String(),
-			BookId:   101,
-			Rating:   5,
-			Comment:  "Great book!",
-		},
-	}
-
-	// Convert []pb.Rating to []*pb.Rating
-	ratingsPtr := make([]*pb.Rating, len(ratings))
-	for i := range ratings {
-		ratingsPtr[i] = &ratings[i]
-	}
-	return &pb.GetRatingsResponse{Ratings: ratingsPtr}, nil
 }

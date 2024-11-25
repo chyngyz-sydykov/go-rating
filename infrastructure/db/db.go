@@ -30,7 +30,7 @@ func InitializeDatabase(dbConfig *config.DBConfig) (*gorm.DB, error) {
 }
 
 func Migrate() {
-	err := db.AutoMigrate(&models.Author{}, &models.Book{})
+	err := db.AutoMigrate(&models.Rating{})
 	if err != nil {
 		log.Fatal("failed to run migration:", err)
 	}

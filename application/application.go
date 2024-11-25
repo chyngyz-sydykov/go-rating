@@ -3,27 +3,31 @@ package application
 import (
 	"log"
 
+	"github.com/chyngyz-sydykov/go-rating/application/handlers"
 	"github.com/chyngyz-sydykov/go-rating/infrastructure/config"
 	"github.com/chyngyz-sydykov/go-rating/infrastructure/db"
+	"github.com/chyngyz-sydykov/go-rating/infrastructure/logger"
+	"github.com/chyngyz-sydykov/go-rating/internal/rating"
 	"gorm.io/gorm"
 )
 
 type App struct {
-	//BookHandler handlers.BookHandler
+	RatingHandler handlers.RatingHandler
 }
 
 func InitializeApplication() *App {
-	// db := initializeDatabase()
 
-	// logger := logger.NewLogger()
+	db := initializeDatabase()
+	ratingService := rating.NewRatingService(db)
 
-	// commonHandler := handlers.NewCommonHandler(logger)
+	logger := logger.NewLogger()
 
-	// bookService := book.NewBookService(db)
-	// bookHandler := handlers.NewBookHandler(*bookService, *commonHandler)
+	commonHandler := handlers.NewCommonHandler(logger)
+
+	ratingHandler := handlers.NewRatingHandler(ratingService, *commonHandler)
 
 	app := &App{
-		//BookHandler: *bookHandler,
+		RatingHandler: *ratingHandler,
 	}
 	return app
 }

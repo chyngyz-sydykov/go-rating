@@ -1,32 +1,53 @@
 package handlers
 
+import (
+	"context"
+	"log"
+
+	"github.com/chyngyz-sydykov/go-rating/internal/rating"
+	pb "github.com/chyngyz-sydykov/go-rating/proto/rating"
+	"github.com/google/uuid"
+)
+
 type RatingHandler struct {
-	//ratings []*proto.Rating
+	pb.RatingServiceServer
+	service       rating.RatingServiceInterface
+	commonHandler CommonHandler
 }
 
-func NewRatingHandler() *RatingHandler {
-	//return &RatingHandler{ratings: []*proto.Rating{}}
-
-	return &RatingHandler{}
+func NewRatingHandler(service rating.RatingServiceInterface, commonHandler CommonHandler) *RatingHandler {
+	return &RatingHandler{
+		service:       service,
+		commonHandler: commonHandler,
+	}
 }
+func (handler *RatingHandler) SaveRating(context.Context, *pb.SaveRatingRequest) (*pb.SaveRatingResponse, error) {
+	log.Printf("Received SaveRating request")
+	rating := &pb.Rating{
+		RatingId: uuid.New().String(),
+		BookId:   101,
+		Rating:   5,
+		Comment:  "SaveRating!",
+	}
 
-// func (h *RatingHandler) CreateRating(ctx context.Context, req *proto.CreateRatingRequest) (*proto.CreateRatingResponse, error) {
-// 	rating := &proto.Rating{
-// 		RatingId: "rating123", // Generate a unique ID here
-// 		UserId:   req.UserId,
-// 		BookId:   req.BookId,
-// 		Score:    req.Score,
-// 	}
-// 	h.ratings = append(h.ratings, rating)
-// 	return &proto.CreateRatingResponse{RatingId: rating.RatingId}, nil
-// }
+	return &pb.SaveRatingResponse{Rating: rating}, nil
+}
+func (handler *RatingHandler) GetRatings(ctx context.Context, req *pb.GetRatingsRequest) (*pb.GetRatingsResponse, error) {
+	log.Printf("Received GetRatings request for book_id: %d", req.BookId)
 
-// func (h *RatingHandler) ListRatings(ctx context.Context, req *proto.ListRatingsRequest) (*proto.ListRatingsResponse, error) {
-// 	var filteredRatings []*proto.Rating
-// 	for _, rating := range h.ratings {
-// 		if rating.BookId == req.BookId {
-// 			filteredRatings = append(filteredRatings, rating)
-// 		}
-// 	}
-// 	return &proto.ListRatingsResponse{Ratings: filteredRatings}, nil
-// }
+	ratings := []pb.Rating{
+		{
+			RatingId: uuid.New().String(),
+			BookId:   101,
+			Rating:   5,
+			Comment:  "GetRatings!",
+		},
+	}
+
+	// Convert []pb.Rating to []*pb.Rating
+	ratingsPtr := make([]*pb.Rating, len(ratings))
+	for i := range ratings {
+		ratingsPtr[i] = &ratings[i]
+	}
+	return &pb.GetRatingsResponse{Ratings: ratingsPtr}, nil
+}

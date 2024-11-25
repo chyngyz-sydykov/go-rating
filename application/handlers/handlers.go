@@ -1,9 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
-	"net/http"
-
 	"github.com/chyngyz-sydykov/go-rating/infrastructure/logger"
 )
 
@@ -32,8 +29,6 @@ func NewCommonHandler(logger *logger.Logger) *CommonHandler {
 	return &CommonHandler{logger: logger}
 }
 
-func (c *CommonHandler) HandleError(w http.ResponseWriter, err error, statusCode int, errorResponse ErrorResponse) {
+func (c *CommonHandler) HandleError(err error, statusCode int) {
 	c.logger.LogError(statusCode, err)
-	w.WriteHeader(statusCode)
-	json.NewEncoder(w).Encode(errorResponse)
 }
