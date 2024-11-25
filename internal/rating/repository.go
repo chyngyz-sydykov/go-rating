@@ -7,10 +7,9 @@ import (
 )
 
 type RatingRepositoryInterface interface {
-	GetAll() ([]models.Rating, error)
+	GetByBookID(bookId int) ([]models.Rating, error)
 	GetByID(id int) (models.Rating, error)
 	Create(rating models.Rating) error
-	Update(rating *models.Rating, payload models.Rating) error
 }
 
 type RatingRepository struct {
@@ -29,9 +28,9 @@ func (repository *RatingRepository) GetByID(id uint) (models.Rating, error) {
 	return rating, nil
 }
 
-func (repository *RatingRepository) GetByBookID(bookId uint) ([]models.Rating, error) {
+func (repository *RatingRepository) GetByBookID(bookId int) ([]models.Rating, error) {
 	var ratings []models.Rating
-	if err := repository.db.Where("book_id = ?", bookId).Find(&ratings).Error; err != nil {
+	if err := repository.db.Where("book_id = ?", bookId).Order("ID desc").Find(&ratings).Error; err != nil {
 		return ratings, err
 	}
 	return ratings, nil

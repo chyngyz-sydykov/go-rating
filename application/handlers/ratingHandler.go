@@ -2,11 +2,14 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/chyngyz-sydykov/go-rating/internal/rating"
 	pb "github.com/chyngyz-sydykov/go-rating/proto/rating"
 	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type RatingHandler struct {
@@ -35,21 +38,22 @@ func (handler *RatingHandler) SaveRating(ctx context.Context, req *pb.SaveRating
 }
 func (handler *RatingHandler) GetRatings(ctx context.Context, req *pb.GetRatingsRequest) (*pb.GetRatingsResponse, error) {
 	bookId := req.BookId
-	//_ := handler.service.GetByBookID(int(bookId))
-
-	ratings := []pb.Rating{
-		{
-			RatingId: uuid.New().String(),
-			BookId:   bookId,
-			Rating:   5,
-			Comment:  "GetRatings!",
-		},
+	ratings, err := handler.service.GetByBookID(int(bookId))
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "rating must be between 1 and 5")
 	}
+
+	fmt.Println(ratings)
 
 	// Convert []pb.Rating to []*pb.Rating
 	ratingsPtr := make([]*pb.Rating, len(ratings))
 	for i := range ratings {
-		ratingsPtr[i] = &ratings[i]
+		ratingsPtr[i] = &pb.Rating{
+			RatingId: ratings[i].ID.String(),
+			BookId:   int32(ratings[i].BookId),
+			Rating:   int32(ratings[i].Rating),
+			Comment:  ratings[i].Comment,
+		}
 	}
 	return &pb.GetRatingsResponse{Ratings: ratingsPtr}, nil
 }

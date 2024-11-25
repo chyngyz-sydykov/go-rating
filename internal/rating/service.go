@@ -27,7 +27,12 @@ func (service *RatingService) GetByID(id int) (models.Rating, error) {
 }
 
 func (service *RatingService) GetByBookID(bookId int) ([]models.Rating, error) {
-	return nil, nil
+
+	ratings, err := service.repository.GetByBookID(bookId)
+	if err != nil {
+		return ratings, err
+	}
+	return ratings, err
 }
 func (service *RatingService) Create(book *models.Rating) error {
 	return nil
