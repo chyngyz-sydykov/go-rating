@@ -2,33 +2,22 @@ package handlers
 
 import (
 	"github.com/chyngyz-sydykov/go-rating/infrastructure/logger"
+	"google.golang.org/grpc/codes"
 )
 
-type AppHandlerInterface interface {
-}
-
-type ErrorDetail struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-}
-
-type ErrorResponse struct {
-	Error ErrorDetail `json:"error"`
-}
-
 type CommonHandler struct {
-	logger *logger.Logger
+	logger logger.LoggerInterface
 }
 
 const INVALID_REQUEST string = "INVALID_REQUEST"
 const RESOURCE_NOT_FOUND string = "RESOURCE_NOT_FOUND"
 const SERVER_ERROR string = "SERVER_ERROR"
 
-func NewCommonHandler(logger *logger.Logger) *CommonHandler {
+func NewCommonHandler(logger logger.LoggerInterface) *CommonHandler {
 
 	return &CommonHandler{logger: logger}
 }
 
-func (c *CommonHandler) HandleError(err error, statusCode int) {
+func (c *CommonHandler) HandleError(statusCode codes.Code, err error) {
 	c.logger.LogError(statusCode, err)
 }

@@ -9,7 +9,7 @@ import (
 type RatingRepositoryInterface interface {
 	GetByBookID(bookId int) ([]models.Rating, error)
 	GetByID(id int) (models.Rating, error)
-	Create(rating models.Rating) error
+	Create(rating *models.Rating) error
 }
 
 type RatingRepository struct {
@@ -20,7 +20,7 @@ func NewRatingRepository(db *gorm.DB) *RatingRepository {
 	return &RatingRepository{db: db}
 }
 
-func (repository *RatingRepository) GetByID(id uint) (models.Rating, error) {
+func (repository *RatingRepository) GetByID(id int) (models.Rating, error) {
 	var rating models.Rating
 	if err := repository.db.First(&rating, id).Error; err != nil {
 		return rating, err

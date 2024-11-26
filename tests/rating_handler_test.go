@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"testing"
 
 	"github.com/chyngyz-sydykov/go-rating/application"
 	"github.com/chyngyz-sydykov/go-rating/application/handlers"
@@ -15,8 +16,87 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
+
+func (suite *IntegrationSuite) TestSaveRating_InvalidRating() {
+	testCases := []struct {
+		name         string
+		rating       int32
+		expectedCode codes.Code
+	}{
+
+		{"RatingIsNegative", -5, codes.InvalidArgument},
+		{"RatingTooLow", 0, codes.InvalidArgument},
+		{"RatingIs6", 6, codes.InvalidArgument},
+		{"RatingTooHigh", 10, codes.InvalidArgument},
+	}
+
+	// Create an in-memory gRPC server
+	listener, server := createInMemoryGrpcServer(suite)
+	defer server.Stop()
+
+	for _, tc := range testCases {
+		suite.T().Run(tc.name, func(t *testing.T) {
+
+			//Create a gRPC client connected to the server
+			conn, err := grpc.NewClient(listener.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+			if err != nil {
+				log.Fatalf("Failed to dial server: %v", err)
+			}
+			defer conn.Close()
+
+			client := pb.NewRatingServiceClient(conn)
+
+			// Act
+			req := &pb.SaveRatingRequest{
+				BookId:  101,
+				Rating:  tc.rating,
+				Comment: "Test comment",
+			}
+			_, err = client.SaveRating(context.Background(), req)
+
+			st, _ := status.FromError(err)
+
+			if tc.expectedCode == codes.OK {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+				assert.Equal(t, tc.expectedCode, st.Code())
+			}
+		})
+	}
+}
+
+func (suite *IntegrationSuite) TestGetRatingsMethod_ShouldReturnInvalidArgumentWhenRatingIsNotValid() {
+	// Create an in-memory gRPC server
+	listener, server := createInMemoryGrpcServer(suite)
+
+	defer server.Stop()
+
+	//Create a gRPC client connected to the server
+	conn, err := grpc.NewClient(listener.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("Failed to dial server: %v", err)
+	}
+	defer conn.Close()
+
+	client := pb.NewRatingServiceClient(conn)
+
+	// Act
+	req := &pb.GetRatingsRequest{
+		BookId: -1,
+	}
+	_, err = client.GetRatings(context.Background(), req)
+
+	// Assert
+	assert.Error(suite.T(), err)
+	st, ok := status.FromError(err)
+	assert.True(suite.T(), ok)
+	assert.Equal(suite.T(), codes.InvalidArgument, st.Code())
+}
 
 func (suite *IntegrationSuite) TestSaveRatingMethod_ShouldReturnSuccessResponseWithNewRating() {
 	// Create an in-memory gRPC server
@@ -52,6 +132,34 @@ func (suite *IntegrationSuite) TestSaveRatingMethod_ShouldReturnSuccessResponseW
 	suite.Suite.Assert().Nil(err)
 
 	suite.db.Unscoped().Where("1 = 1").Delete(&models.Rating{})
+}
+
+func (suite *IntegrationSuite) TestGetRatingsMethod_ShouldReturnInvalidResponseWhenBookIdIsNegative() {
+	// Create an in-memory gRPC server
+	listener, server := createInMemoryGrpcServer(suite)
+
+	defer server.Stop()
+
+	//Create a gRPC client connected to the server
+	conn, err := grpc.NewClient(listener.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("Failed to dial server: %v", err)
+	}
+	defer conn.Close()
+
+	client := pb.NewRatingServiceClient(conn)
+
+	// Act
+	req := &pb.GetRatingsRequest{
+		BookId: -1,
+	}
+	_, err = client.GetRatings(context.Background(), req)
+
+	// Assert
+	assert.Error(suite.T(), err)
+	st, ok := status.FromError(err)
+	assert.True(suite.T(), ok)
+	assert.Equal(suite.T(), codes.InvalidArgument, st.Code())
 }
 
 func (suite *IntegrationSuite) TestGetRatingsMethod_ShouldReturnSuccessResponseWithListOfRatings() {

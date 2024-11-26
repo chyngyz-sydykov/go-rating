@@ -12,13 +12,18 @@ type RatingServiceInterface interface {
 }
 
 type RatingService struct {
-	repository RatingRepository
+	repository RatingRepositoryInterface
+	validator  RatingValidator
 }
 
 func NewRatingService(db *gorm.DB) *RatingService {
+
 	repository := NewRatingRepository(db)
+	validator := NewRatingValidator()
+
 	return &RatingService{
-		repository: *repository,
+		repository: repository,
+		validator:  *validator,
 	}
 }
 
@@ -27,6 +32,10 @@ func (service *RatingService) GetByID(id int) (models.Rating, error) {
 }
 
 func (service *RatingService) GetByBookID(bookId int) ([]models.Rating, error) {
+	err := service.validator.validateBookId(bookId)
+	if err != nil {
+		return nil, err
+	}
 
 	ratings, err := service.repository.GetByBookID(bookId)
 	if err != nil {
@@ -34,6 +43,11 @@ func (service *RatingService) GetByBookID(bookId int) ([]models.Rating, error) {
 	}
 	return ratings, err
 }
+
 func (service *RatingService) Create(rating *models.Rating) error {
+	err := service.validator.validateRating(rating.Rating)
+	if err != nil {
+		return err
+	}
 	return service.repository.Create(rating)
 }
