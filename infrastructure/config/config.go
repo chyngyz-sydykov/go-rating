@@ -11,6 +11,10 @@ type Config struct {
 	ApplicationAddress     string
 	ApplicationPort        string
 	ApplicationEnvironment string
+	RabbitMqUser           string
+	RabbitMqPassword       string
+	RabbitMqQueueName      string
+	RabbitMqContainerName  string
 }
 
 type DBConfig struct {
@@ -19,6 +23,13 @@ type DBConfig struct {
 	Name     string
 	Username string
 	Password string
+}
+
+type MessageBrokerConfig struct {
+	RabbitMqUser          string
+	RabbitMqPassword      string
+	RabbitMqQueueName     string
+	RabbitMqContainerName string
 }
 
 func LoadConfig() (*Config, error) {
@@ -31,6 +42,21 @@ func LoadConfig() (*Config, error) {
 		ApplicationAddress:     getEnv("APPLICATION_ADDRESS", "/"),
 		ApplicationPort:        getEnv("APPLICATION_PORT", "1111"),
 		ApplicationEnvironment: getEnv("APPLICATION_ENVIRONMENT", "local"),
+	}
+
+	return config, nil
+}
+func LoadMessageBrokerConfig() (*MessageBrokerConfig, error) {
+	err := loadEnvFile()
+	if err != nil {
+		return nil, fmt.Errorf("error loading .env file")
+	}
+
+	config := &MessageBrokerConfig{
+		RabbitMqUser:          getEnv("RABBITMQ_USER", "guest"),
+		RabbitMqPassword:      getEnv("RABBITMQ_PASSWORD", "guest"),
+		RabbitMqQueueName:     getEnv("RABBITMQ_QUEUE_NAME", "queue-name"),
+		RabbitMqContainerName: getEnv("RABBITMQ_CONTAINER_NAME", "go_web_rabbitmq"),
 	}
 
 	return config, nil

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/chyngyz-sydykov/go-rating/application"
 	"github.com/chyngyz-sydykov/go-rating/application/handlers"
@@ -14,6 +15,7 @@ import (
 	"github.com/chyngyz-sydykov/go-rating/internal/rating"
 	pb "github.com/chyngyz-sydykov/go-rating/proto/rating"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -198,6 +200,47 @@ func (suite *IntegrationSuite) TestGetRatingsMethod_ShouldReturnSuccessResponseW
 	suite.db.Unscoped().Where("1 = 1").Delete(&models.Rating{})
 }
 
+func provideDependencies(suite *IntegrationSuite) *application.App {
+	logger := logger.NewLogger()
+	commonHandler := handlers.NewCommonHandler(logger)
+
+	var messageBrokerMock MessageBrokerMock
+	expectedMessage := rating.BookMessage{
+		BookId:   1,
+		EditedAt: time.Now(),
+		Event:    "bookRated",
+	}
+
+	messageBrokerMock.On("Publish", mock.MatchedBy(func(msg rating.BookMessage) bool {
+		return msg.Event == expectedMessage.Event &&
+			msg.BookId == 1
+	})).Return(nil)
+
+	ratingService := rating.NewRatingService(suite.db, &messageBrokerMock)
+	ratingHandler := handlers.NewRatingHandler(ratingService, *commonHandler)
+
+	app := &application.App{
+		RatingHandler: *ratingHandler,
+	}
+	return app
+}
+
+type MessageBrokerMock struct {
+	mock.Mock
+}
+
+func (m *MessageBrokerMock) Publish(message interface{}) error {
+	args := m.Called(message)
+	return args.Error(0)
+}
+
+func (m *MessageBrokerMock) InitializeMessageBroker() {
+	m.Called()
+}
+
+func (m *MessageBrokerMock) Close() {
+}
+
 func createInMemoryGrpcServer(suite *IntegrationSuite) (net.Listener, *grpc.Server) {
 	app := provideDependencies(suite)
 	server := grpc.NewServer()
@@ -217,18 +260,4 @@ func createInMemoryGrpcServer(suite *IntegrationSuite) (net.Listener, *grpc.Serv
 		}
 	}()
 	return listener, server
-}
-
-func provideDependencies(suite *IntegrationSuite) *application.App {
-	logger := logger.NewLogger()
-	commonHandler := handlers.NewCommonHandler(logger)
-
-	ratingService := rating.NewRatingService(suite.db)
-
-	ratingHandler := handlers.NewRatingHandler(ratingService, *commonHandler)
-
-	app := &application.App{
-		RatingHandler: *ratingHandler,
-	}
-	return app
 }

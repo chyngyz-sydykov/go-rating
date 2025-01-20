@@ -1,9 +1,15 @@
 package rating
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/chyngyz-sydykov/go-rating/infrastructure/db/models"
+	"github.com/chyngyz-sydykov/go-rating/infrastructure/messagebroker"
 	"gorm.io/gorm"
 )
+
+const BOOKRATED_EVENT_NAME = "bookRated"
 
 type RatingServiceInterface interface {
 	GetByID(id int) (models.Rating, error)
@@ -12,18 +18,23 @@ type RatingServiceInterface interface {
 }
 
 type RatingService struct {
-	repository RatingRepositoryInterface
-	validator  RatingValidator
+	repository    RatingRepositoryInterface
+	messageBroker messagebroker.MessageBrokerInterface
+	validator     RatingValidator
 }
 
-func NewRatingService(db *gorm.DB) *RatingService {
+func NewRatingService(
+	db *gorm.DB,
+	messageBrokerPublisher messagebroker.MessageBrokerInterface,
+) *RatingService {
 
 	repository := NewRatingRepository(db)
 	validator := NewRatingValidator()
 
 	return &RatingService{
-		repository: repository,
-		validator:  *validator,
+		repository:    repository,
+		validator:     *validator,
+		messageBroker: messageBrokerPublisher,
 	}
 }
 
@@ -49,5 +60,25 @@ func (service *RatingService) Create(rating *models.Rating) error {
 	if err != nil {
 		return err
 	}
-	return service.repository.Create(rating)
+	err = service.repository.Create(rating)
+	if err != nil {
+		return err
+	}
+	return service.publishMessage(rating, BOOKRATED_EVENT_NAME)
+}
+
+func (service *RatingService) publishMessage(rating *models.Rating, event string) error {
+
+	bookMessage := BookMessage{
+		BookId:   int(rating.BookId),
+		EditedAt: time.Now(),
+		Event:    event,
+	}
+
+	if err := service.messageBroker.Publish(bookMessage); err != nil {
+		err := fmt.Errorf("failed to publish event: %v", err)
+		return err
+
+	}
+	return nil
 }
