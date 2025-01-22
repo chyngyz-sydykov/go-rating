@@ -1,6 +1,7 @@
 package application
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/chyngyz-sydykov/go-rating/application/handlers"
@@ -9,6 +10,7 @@ import (
 	"github.com/chyngyz-sydykov/go-rating/infrastructure/logger"
 	"github.com/chyngyz-sydykov/go-rating/infrastructure/messagebroker"
 	"github.com/chyngyz-sydykov/go-rating/internal/rating"
+	"google.golang.org/grpc/codes"
 	"gorm.io/gorm"
 )
 
@@ -21,13 +23,11 @@ func InitializeApplication() *App {
 	if err != nil {
 		log.Fatalf("Could not config: %v", err)
 	}
-
-	db := initializeDatabase()
-	rabbitMqPublisher := initializeRabbitMqPublisher(config)
+	logger := logger.NewLogger()
+	db := InitializeDatabase()
+	rabbitMqPublisher := InitializeRabbitMqPublisher(config, logger)
 
 	ratingService := rating.NewRatingService(db, rabbitMqPublisher)
-
-	logger := logger.NewLogger()
 
 	commonHandler := handlers.NewCommonHandler(logger)
 
@@ -38,18 +38,21 @@ func InitializeApplication() *App {
 	}
 	return app
 }
-func initializeRabbitMqPublisher(config *config.MessageBrokerConfig) messagebroker.MessageBrokerInterface {
+func InitializeRabbitMqPublisher(config *config.MessageBrokerConfig, logger logger.LoggerInterface) messagebroker.MessageBrokerInterface {
 	rabbitMQURL := "amqp://" + config.RabbitMqUser + ":" + config.RabbitMqPassword + "@" + config.RabbitMqContainerName + ":5672/"
 	publisher, err := messagebroker.NewRabbitMQPublisher(rabbitMQURL, config.RabbitMqQueueName)
 
 	if err != nil {
-		log.Fatalf("Failed to initialize message publisher: %v", err)
+		err = fmt.Errorf("failed to initialize message publisher: %v", err)
+		logger.LogError(codes.Aborted, err)
+
+	} else {
+		publisher.InitializeMessageBroker()
 	}
-	publisher.InitializeMessageBroker()
 	return publisher
 }
 
-func initializeDatabase() *gorm.DB {
+func InitializeDatabase() *gorm.DB {
 	dbConfig, err := config.LoadDBConfig()
 	if err != nil {
 		log.Fatalf("Could not load database config: %v", err)

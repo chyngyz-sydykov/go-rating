@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 
 	my_error "github.com/chyngyz-sydykov/go-rating/error"
@@ -55,14 +54,15 @@ func (handler *RatingHandler) GetRatings(ctx context.Context, req *pb.GetRatings
 	ratings, err := handler.service.GetByBookID(int(bookId))
 	if err != nil {
 		if errors.Is(err, my_error.ErrInvalidArgument) {
-			return nil, status.Errorf(codes.InvalidArgument, "book with ID %d is invalid", bookId)
+			err := status.Errorf(codes.InvalidArgument, "book with ID %d is invalid", bookId)
+			handler.commonHandler.HandleError(codes.InvalidArgument, err)
+			return nil, err
 		}
-		return nil, status.Errorf(codes.Unknown, "unknown error %s", err)
+		err := status.Errorf(codes.Unknown, "unknown error %s", err)
+		handler.commonHandler.HandleError(codes.InvalidArgument, err)
+		return nil, err
 	}
 
-	fmt.Println(ratings)
-
-	// Convert []pb.Rating to []*pb.Rating
 	ratingList := handler.mapGormToGrpcObject(ratings)
 	return &pb.GetRatingsResponse{Ratings: ratingList}, nil
 }

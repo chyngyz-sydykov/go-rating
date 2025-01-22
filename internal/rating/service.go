@@ -12,7 +12,6 @@ import (
 const BOOKRATED_EVENT_NAME = "bookRated"
 
 type RatingServiceInterface interface {
-	GetByID(id int) (models.Rating, error)
 	GetByBookID(bookId int) ([]models.Rating, error)
 	Create(rating *models.Rating) error
 }
@@ -36,10 +35,6 @@ func NewRatingService(
 		validator:     *validator,
 		messageBroker: messageBrokerPublisher,
 	}
-}
-
-func (service *RatingService) GetByID(id int) (models.Rating, error) {
-	return models.Rating{}, nil
 }
 
 func (service *RatingService) GetByBookID(bookId int) ([]models.Rating, error) {
